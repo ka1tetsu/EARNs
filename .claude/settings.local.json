@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm run build)",
+      "Bash(ls /c/Users/ryeak/Desktop/JPYC/node_modules/.bin/vite*)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /PID 18248 /F)"
+    ]
+  }
+}
