@@ -1,4 +1,4 @@
-import { Home, Play, ShoppingBag, History, User } from 'lucide-react';
+import { Home, Play, History, User } from 'lucide-react';
 
 interface BottomNavProps {
   currentPage: string;
@@ -8,7 +8,6 @@ interface BottomNavProps {
 const navItems = [
   { id: 'home', label: 'ホーム', icon: Home },
   { id: 'ads', label: '広告視聴', icon: Play },
-  { id: 'shop', label: 'ショップ', icon: ShoppingBag },
   { id: 'history', label: '履歴', icon: History },
   { id: 'profile', label: 'マイページ', icon: User },
 ];
