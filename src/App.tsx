@@ -15,7 +15,7 @@ const NAV_PAGES: Page[] = ['home', 'ads', 'shop', 'history', 'profile'];
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
-  const { user, watchAd, exchangeJPYC, connectWallet, disconnectWallet } = useStore();
+  const { user, authToken, watchAd, exchangeJPYC, connectWallet, disconnectWallet } = useStore();
 
   const navigate = useCallback((page: string) => {
     setCurrentPage(page as Page);
@@ -37,7 +37,7 @@ export default function App() {
       <main className={isNavPage ? 'pt-[52px]' : ''}>
         {currentPage === 'home'    && <HomePage user={user} onNavigate={navigate} />}
         {currentPage === 'ads'     && <AdsPage user={user} onWatchAd={watchAd} />}
-        {currentPage === 'shop'    && <ShopPage user={user} onExchange={exchangeJPYC} onConnectWallet={connectWallet} onDisconnectWallet={disconnectWallet} />}
+        {currentPage === 'shop'    && <ShopPage user={user} authToken={authToken} onExchange={exchangeJPYC} onConnectWallet={connectWallet} onDisconnectWallet={disconnectWallet} />}
         {currentPage === 'history' && <HistoryPage user={user} />}
         {currentPage === 'profile' && <ProfilePage user={user} onNavigate={navigate} />}
         {currentPage === 'terms'   && <TermsPage onBack={() => navigate('profile')} />}

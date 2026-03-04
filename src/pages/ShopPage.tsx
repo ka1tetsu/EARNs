@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { ArrowRight, CheckCircle, AlertCircle, Wallet, Loader } from 'lucide-react';
 import type { UserState } from '../store/useStore';
-import { connectMetaMask, sendJPYCToWallet, setupWalletListener, removeWalletListener } from '../utils/walletUtils';
+import { connectMetaMask, exchangePoints, setupWalletListener, removeWalletListener } from '../utils/walletUtils';
 
 interface ShopPageProps {
   user: UserState;
+  authToken: string | null;
   onExchange: (amount: number, txHash?: string) => void;
   onConnectWallet: (address: string) => void;
   onDisconnectWallet: () => void;
 }
 
-export function ShopPage({ user, onExchange, onConnectWallet, onDisconnectWallet }: ShopPageProps) {
+export function ShopPage({ user, authToken, onExchange, onConnectWallet, onDisconnectWallet }: ShopPageProps) {
   const [selectedAmount, setSelectedAmount] = useState(10);
   const [showConfirm, setShowConfirm] = useState(false);
   const [exchangeSuccess, setExchangeSuccess] = useState(false);
@@ -68,12 +69,10 @@ export function ShopPage({ user, onExchange, onConnectWallet, onDisconnectWallet
     setError(null);
 
     try {
-      // バックエンド連携でウォレットに送金
-      // 本番環境では、実際のバックエンドURLを使用してください
-      const backendUrl = (import.meta.env.VITE_BACKEND_URL as string) || 'http://localhost:3000';
+      if (!authToken) throw new Error('認証が必要です。ウォレットを接続してください。');
 
       setProcessingMessage('ウォレットへ送金中...');
-      const result = await sendJPYCToWallet(user.walletAddress!, selectedAmount, backendUrl);
+      const result = await exchangePoints(authToken, selectedAmount);
 
       if (result.success) {
         setProcessingMessage('交換を完了しています...');
