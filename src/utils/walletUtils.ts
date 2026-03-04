@@ -3,10 +3,24 @@
  * MetaMask、WalletConnect などのウォレットプロバイダーと連携
  */
 
+// 環境に応じて自動的にバックエンドURLを設定
+function getBackendUrl(): string {
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return 'http://localhost:3000';
+  }
+  // 本番環境：Vercel Functions を使用（/api へのリクエストは同一ドメイン）
+  return typeof window !== 'undefined' ? `${window.location.origin}` : '';
+}
+
 export interface WalletProvider {
   isConnected: boolean;
   address: string | null;
   chainId: number | null;
+}
+
+export interface AuthToken {
+  token: string;
+  expiresIn: string;
 }
 
 /**
@@ -30,32 +44,125 @@ export async function connectMetaMask(): Promise<string | null> {
 }
 
 /**
- * JPYC送金トランザクション生成（バックエンド連携用）
+ * ウォレット署名を使用してJWTトークンを取得
  */
-export async function sendJPYCToWallet(
+export async function getAuthToken(
   walletAddress: string,
-  amount: number,
-  backendUrl: string
-): Promise<{ success: boolean; txHash?: string; error?: string }> {
+  message: string,
+  signature: string
+): Promise<{ success: boolean; token?: string; error?: string }> {
   try {
-    const response = await fetch(`${backendUrl}/api/transfer-jpyc`, {
+    const backendUrl = getBackendUrl();
+    const response = await fetch(`${backendUrl}/api/auth-verify-wallet`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        toAddress: walletAddress,
-        amount,
-        timestamp: new Date().toISOString(),
+        walletAddress,
+        message,
+        signature,
       }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Authentication failed');
+    }
+
+    const data = (await response.json()) as { token: string };
+    return { success: true, token: data.token };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * JPYC送金トランザクション生成（バックエンド連携用）
+ */
+export async function sendJPYCToWallet(
+  walletAddress: string,
+  amount: number,
+  token: string
+): Promise<{ success: boolean; txHash?: string; error?: string }> {
+  try {
+    const backendUrl = getBackendUrl();
+    const response = await fetch(`${backendUrl}/api/transfer-jpyc`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        toAddress: walletAddress,
+        amount,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `API Error: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as { txHash: string };
+    return { success: true, txHash: data.txHash };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * トランザクション完了状況を確認
+ */
+export async function checkTransactionStatus(
+  txHash: string
+): Promise<{ success: boolean; status?: string; confirmations?: number; error?: string }> {
+  try {
+    const backendUrl = getBackendUrl();
+    const response = await fetch(`${backendUrl}/api/transfer-status?txHash=${txHash}`);
 
     if (!response.ok) {
       throw new Error(`API Error: ${response.statusText}`);
     }
 
-    const data = (await response.json()) as { txHash: string };
-    return { success: true, txHash: data.txHash };
+    const data = (await response.json()) as {
+      transaction: { status: string; confirmations: number };
+    };
+    return {
+      success: true,
+      status: data.transaction.status,
+      confirmations: data.transaction.confirmations,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * ウォレット残高を確認
+ */
+export async function checkWalletBalance(
+  walletAddress: string
+): Promise<{ success: boolean; balance?: string; error?: string }> {
+  try {
+    const backendUrl = getBackendUrl();
+    const response = await fetch(`${backendUrl}/api/wallet-balance?address=${walletAddress}`);
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as { balance: string };
+    return { success: true, balance: data.balance };
   } catch (error) {
     return {
       success: false,

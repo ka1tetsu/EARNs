@@ -31,3 +31,41 @@ jobs:
     
     - name: Build project
       run: npm run build
+    
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: dist-${{ matrix.node-version }}
+        path: dist/
+        retention-days: 5
+
+  # Vercel デプロイメント（main ブランチのみ）
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18.x
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Deploy to Vercel
+      uses: vercel/action@v4
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        production: true
+
