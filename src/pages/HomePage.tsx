@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Play, TrendingUp, History, ChevronRight } from 'lucide-react';
 import type { UserState } from '../store/useStore';
 
@@ -9,6 +10,13 @@ interface HomePageProps {
 export function HomePage({ user, onNavigate }: HomePageProps) {
   const { jpycBalance, totalEarned, totalAdsWatched, adsInCurrentCycle } = user;
   const cyclePercent = (adsInCurrentCycle / 3) * 100;
+
+  useEffect(() => {
+    try {
+      ((window as unknown as { adsbygoogle: unknown[] }).adsbygoogle =
+        (window as unknown as { adsbygoogle: unknown[] }).adsbygoogle || []).push({});
+    } catch (_) { /* AdSense not loaded */ }
+  }, []);
 
   return (
     <div className="pb-24">
@@ -76,6 +84,15 @@ export function HomePage({ user, onNavigate }: HomePageProps) {
             <p className="text-xs text-gray-500">総視聴本数</p>
           </div>
         </div>
+
+        {/* Google AdSense 広告ユニット */}
+        <ins
+          className="adsbygoogle"
+          style={{ display: 'block' }}
+          data-ad-client="ca-pub-4868615559787524"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
 
         {/* 収益モデル説明 */}
         <div className="card">
