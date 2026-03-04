@@ -1,7 +1,7 @@
 // POST /api/ads/complete
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { prisma } from '../_lib/prisma.js';
-import { verifyToken } from '../_lib/auth.js';
+import { prisma } from '../../lib/prisma.js';
+import { verifyToken } from '../../lib/auth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');

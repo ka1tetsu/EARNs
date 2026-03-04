@@ -1,8 +1,8 @@
 // POST /api/points/exchange
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { ethers } from 'ethers';
-import { prisma } from '../_lib/prisma.js';
-import { verifyToken } from '../_lib/auth.js';
+import { prisma } from '../../lib/prisma.js';
+import { verifyToken } from '../../lib/auth.js';
 
 const JPYC_ABI = [
   'function transfer(address to, uint256 amount) returns (bool)',
