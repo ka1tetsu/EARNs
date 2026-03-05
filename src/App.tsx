@@ -24,7 +24,7 @@ export default function App() {
   const showBanner = isNavPage && ADSENSE_ENABLED;
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative">
+    <div className="min-h-screen bg-gray-50 w-full relative">
 
       {showBanner && (
         <div className="fixed top-0 left-0 right-0 z-40 max-w-md mx-auto">
